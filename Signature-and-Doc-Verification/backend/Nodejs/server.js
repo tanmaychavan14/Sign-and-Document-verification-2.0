@@ -1,51 +1,79 @@
+// backend/server.js
 const express = require('express');
-const axios = require('axios');
+const cors = require('cors');
+const connectDB = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
+const signatureRoutes = require('./routes/signatureRoutes');
 const fs = require('fs');
-const FormData = require('form-data');
 const path = require('path');
 
-// Setup Express server
+// Initialize Express
 const app = express();
-const port = 4000;
+const port = process.env.PORT || 4000;
 
-app.get("/", (req, res)=>{
-    res.send("server is listening")
-})
-// Endpoint to handle signature verification with pre-existing files in the uploads folder
-app.post('/verify-signature', async (req, res) => {
-    try {
-        // Define the paths to the pre-existing files in the 'uploads/' folder
-        const originalSignaturePath = path.join('uploads', 's1.jpg'); // Original signature
-        const verificationSignaturePath = path.join('uploads', 's2.jpg'); // Verification signature
+// Connect to Database
+connectDB();
 
-        // Check if the files exist
-        if (!fs.existsSync(originalSignaturePath) || !fs.existsSync(verificationSignaturePath)) {
-            return res.status(400).json({ error: 'Both sign.jpg and sign2.jpg must be present in the uploads folder' });
-        }
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-        // Log the paths for debugging purposes
-        console.log('Original Signature Path:', originalSignaturePath);
-        console.log('Verification Signature Path:', verificationSignaturePath);
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
-        // Create FormData object to send to FastAPI
-        const form = new FormData();
-        form.append('original_signature', fs.createReadStream(originalSignaturePath));
-        form.append('verification_signature', fs.createReadStream(verificationSignaturePath));
-
-        // Send the form data to FastAPI
-        const response = await axios.post('http://127.0.0.1:8000/verify-signature/', form, {
-            headers: form.getHeaders(),
-        });
-
-        // Return the result from FastAPI to the client
-        res.json(response.data);
-    } catch (error) {
-        console.error('Error verifying signature:', error.response ? error.response.data : error.message);
-        res.status(500).send('Internal Server Error');
-    }
+// Routes
+app.get('/', (req, res) => {
+  res.send('Signature Verification API is running');
 });
 
-// Start Node.js server
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/signatures', signatureRoutes);
+
+// Legacy endpoint for compatibility with original code
+app.post('/verify-signature', async (req, res) => {
+  try {
+    // Define paths for legacy code support
+    const originalSignaturePath = path.join('uploads', 's1.jpg');
+    const verificationSignaturePath = path.join('uploads', 's2.jpg');
+    
+    // Check if files exist
+    if (!fs.existsSync(originalSignaturePath) || !fs.existsSync(verificationSignaturePath)) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Signature files not found' 
+      });
+    }
+    
+    // Create FormData object
+    const FormData = require('form-data');
+    const form = new FormData();
+    form.append('original_signature', fs.createReadStream(originalSignaturePath));
+    form.append('verification_signature', fs.createReadStream(verificationSignaturePath));
+    
+    // Send to FastAPI
+    const axios = require('axios');
+    const response = await axios.post(
+      'http://127.0.0.1:8000/verify-signature/',
+      form,
+      { headers: form.getHeaders() }
+    );
+    
+    // Return the result
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error verifying signature:', error.message);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal Server Error' 
+    });
+  }
+});
+
+// Start the server
 app.listen(port, () => {
-    console.log(`Node.js server running at http://localhost:${port}`);
+  console.log(`Server running on port ${port}`);
 });
