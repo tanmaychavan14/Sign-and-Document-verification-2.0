@@ -1,0 +1,119 @@
+.Nav-Bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    background-color: darkblue;
+    color: white;
+     
+    margin : 0;
+  }
+  
+  .trip-logo {
+    padding: 0;
+    margin: 0;
+    font-size: 2.5rem; /* Adjust size as needed */
+    font-weight: bold;
+    color: white;
+    margin-left: 50px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+  }
+  
+  .Nav-Menu {
+    font-size: larger;
+    font-weight: bold;
+    display: flex;
+    list-style: none;
+    gap: 1.5rem;
+    align-items: center;
+
+  }
+  
+  .Nav-Menu li {
+    color:white;
+    cursor: pointer;
+  }
+  
+  .Nav-Menu li:hover {
+    color:black;
+  }
+
+  .Nav-Bar .Nav-Menu .Log-in{
+    font-size: larger;
+    color : blue;
+    font-style:bold;
+    font-weight:bold;
+    margin-right: 10px;
+  }
+ 
+  .profile{
+    color:black;
+    margin-right: 15px;
+    
+  }
+  .logoo {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid white;
+  }
+  .profile-container {
+    position: relative;
+  }
+  
+  .profile {
+    cursor: pointer;
+  }
+  
+  .dropdown-menu {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background: white;
+    box-shadow: 2px 20px 20px rgba(30, 3, 3, 0.2);
+    border-radius: 8px;
+    width: 250px;
+    padding: 10px;
+    z-index: 100;
+    color: black;
+    margin-right: 5px;
+  }
+  
+  .dropdown-menu button {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    text-align: left;
+  }
+  
+  .dropdown-menu button:hover {
+    background: #f0f0f0;
+  }
+  .dropdown-item {
+    color: black;
+    font-weight: 100;
+    margin:10px;
+  }
+  
+  .logout {
+    color: red;
+    margin: 10px;
+  }
+  
+  
+  .logout {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .profile-name {
+    font-weight: bold;
+    text-align: center;
+    padding-bottom: 10px;
+  }
+  
