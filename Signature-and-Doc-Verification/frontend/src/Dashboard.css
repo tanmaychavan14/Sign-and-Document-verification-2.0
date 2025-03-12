@@ -138,7 +138,7 @@
     box-shadow: 0 5px 15px rgba(23, 220, 112, 0.308);
     position: relative;
     z-index: 2; /* Keep text above the gradient */
-    color: black !important; /* Ensure text stays black */
+    color: black !important; /* Ensure text stays blackd */
 }
 
 .verify-button::before {

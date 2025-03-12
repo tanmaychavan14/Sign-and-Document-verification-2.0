@@ -28,7 +28,7 @@ const Navbar = () => {
             />
           </div>
 
-          {/* Dropdown Menu */}
+          {/* Dropdown Mednu */}
           {isOpen && (
             <div className="dropdown-menu">
               <p className="profile-name">{user.name}</p>
