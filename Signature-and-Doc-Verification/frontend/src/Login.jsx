@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Login.css";
+import authService from "./services/authService"; // Adjust path as needed
 
 const Login = ({ onClose, onLoginSuccess }) => {
   const [email, setEmail] = useState("");
@@ -8,50 +9,58 @@ const Login = ({ onClose, onLoginSuccess }) => {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Reset error messagea
+    // Reset error message
     setError("");
+    setIsLoading(true);
     
-    if (isSignUp) {
-      // Sign Up validation
-      if (!name || !email || !password || !confirmPassword) {
-        setError("Please fill in all fields");
-        return;
-      }
-      
-      if (password !== confirmPassword) {
-        setError("Passwords do not match");
-        return;
-      }
-      
-      if (password.length < 6) {
-        setError("Password must be at least 6 characters");
-        return;
-      }
-      
-      // In a real app, you would register the user with your backend
-      // For demo purposes, we'll just switch to login mode with a success message
-      setError("Account created successfully! Please log in.");
-      setIsSignUp(false);
-      setPassword("");
-      // Keep the email for convenience
-    } else {
-      // Login validation
-      if (!email || !password) {
-        setError("Please fill in all fields");
-        return;
-      }
-      
-      // In a real app, you would verify credentials with your backend
-      // For demo purposes, we'll just accept any valid-looking email
-      if (email.includes('@') && password.length >= 6) {
-        onLoginSuccess();
+    try {
+      if (isSignUp) {
+        // Sign Up validation
+        if (!name || !email || !password || !confirmPassword) {
+          setError("Please fill in all fields");
+          setIsLoading(false);
+          return;
+        }
+        
+        if (password !== confirmPassword) {
+          setError("Passwords do not match");
+          setIsLoading(false);
+          return;
+        }
+        
+        if (password.length < 6) {
+          setError("Password must be at least 6 characters");
+          setIsLoading(false);
+          return;
+        }
+        
+        // Call register API
+        await authService.register(name, email, password);
+        setError("Account created successfully! Please log in.");
+        setIsSignUp(false);
+        setPassword("");
+        // Keep the email for convenience
       } else {
-        setError("Invalid credentials. Please try again.");
+        // Login validation
+        if (!email || !password) {
+          setError("Please fill in all fields");
+          setIsLoading(false);
+          return;
+        }
+        
+        // Call login API
+        const userData = await authService.login(email, password);
+        onLoginSuccess(userData);
       }
+    } catch (err) {
+      setError(err.message || "Authentication failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -119,8 +128,8 @@ const Login = ({ onClose, onLoginSuccess }) => {
         )}
         
         <div className="form-actions">
-          <button type="submit" className="login-submit">
-            {isSignUp ? "Sign Up" : "Login"}
+          <button type="submit" className="login-submit" disabled={isLoading}>
+            {isLoading ? "Processing..." : isSignUp ? "Sign Up" : "Login"}
           </button>
         </div>
         
