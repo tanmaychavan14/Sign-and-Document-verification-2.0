@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Login from './Login';
+import authService from './services/authService';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -10,6 +11,20 @@ function Dashboard() {
   const [verificationPreview, setVerificationPreview] = useState(null);
   const [verificationResult, setVerificationResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [userData, setUserData] = useState(null);
+
+  // Check if user is already logged in on component mount
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const isAuth = authService.isAuthenticated();
+      if (isAuth) {
+        setIsLoggedIn(true);
+        setUserData(authService.getCurrentUser());
+      }
+    };
+    
+    checkAuthStatus();
+  }, []);
 
   const handleVerificationSignatureChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -61,6 +76,16 @@ function Dashboard() {
   const handleLoginSuccess = (userData) => {
     setIsLoggedIn(true);
     setShowLogin(false);
+    setUserData(userData);
+    
+    // Save user data in local storage via auth service
+    authService.saveUserData(userData);
+  };
+
+  const handleLogout = async () => {
+    await authService.logout();
+    setIsLoggedIn(false);
+    setUserData(null);
   };
 
   return (
@@ -68,12 +93,12 @@ function Dashboard() {
       <div className={showLogin ? 'blur-background' : ''}>
         <Navbar 
           isLoggedIn={isLoggedIn} 
-          setIsLoggedIn={setIsLoggedIn} 
+          setIsLoggedIn={handleLogout} 
           setShowLogin={setShowLogin}
         />
         
         <div className="dashboard-content">
-          {/* Left section for signature upload */}
+          {/* Left section for signature upload - Keeping original UI */}
           <div className="upload-panel">
             <h2>Signature Verification</h2>
             
@@ -115,7 +140,7 @@ function Dashboard() {
             </div>
           </div>
           
-          {/* Right section for results */}
+          {/* Right section for results - Keeping original UI */}
           <div className="results-panel">
             <h2>Verification Results</h2>
             

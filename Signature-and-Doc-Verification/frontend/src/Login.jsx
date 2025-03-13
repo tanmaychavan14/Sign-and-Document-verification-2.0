@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./Login.css";
-import authService from "./services/authService"; // Adjust path as needed
+import authService from "./services/authService";
 
 const Login = ({ onClose, onLoginSuccess }) => {
   const [email, setEmail] = useState("");
@@ -10,12 +10,14 @@ const Login = ({ onClose, onLoginSuccess }) => {
   const [error, setError] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Reset error message
+    // Reset error and success messages
     setError("");
+    setSuccessMessage("");
     setIsLoading(true);
     
     try {
@@ -41,9 +43,10 @@ const Login = ({ onClose, onLoginSuccess }) => {
         
         // Call register API
         await authService.register(name, email, password);
-        setError("Account created successfully! Please log in.");
+        setSuccessMessage("Account created successfully! Please log in.");
         setIsSignUp(false);
         setPassword("");
+        setConfirmPassword("");
         // Keep the email for convenience
       } else {
         // Login validation
@@ -55,7 +58,11 @@ const Login = ({ onClose, onLoginSuccess }) => {
         
         // Call login API
         const userData = await authService.login(email, password);
-        onLoginSuccess(userData);
+        
+        // If successful, call the onLoginSuccess callback with the user data
+        if (userData) {
+          onLoginSuccess(userData);
+        }
       }
     } catch (err) {
       setError(err.message || "Authentication failed. Please try again.");
@@ -67,6 +74,20 @@ const Login = ({ onClose, onLoginSuccess }) => {
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
     setError("");
+    setSuccessMessage("");
+  };
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    setError("");
+    
+    if (!email) {
+      setError("Please enter your email address to reset password");
+      return;
+    }
+    
+    // In a real app, this would call an API to send a password reset email
+    setSuccessMessage(`Password reset link has been sent to ${email}`);
   };
 
   return (
@@ -78,6 +99,7 @@ const Login = ({ onClose, onLoginSuccess }) => {
       
       <form onSubmit={handleSubmit} className="login-form">
         {error && <div className="error-message">{error}</div>}
+        {successMessage && <div className="success-message">{successMessage}</div>}
         
         {isSignUp && (
           <div className="form-group">
@@ -139,7 +161,7 @@ const Login = ({ onClose, onLoginSuccess }) => {
           ) : (
             <p>Don't have an account? <a href="#" onClick={toggleMode}>Sign up</a></p>
           )}
-          {!isSignUp && <p><a href="#">Forgot password?</a></p>}
+          {!isSignUp && <p><a href="#" onClick={handleForgotPassword}>Forgot password?</a></p>}
         </div>
       </form>
     </div>
