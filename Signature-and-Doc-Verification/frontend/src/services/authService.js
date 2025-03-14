@@ -1,5 +1,3 @@
-// services/authService.js
-
 const BASE_URL = "http://localhost:4000/api/auth";
 
 const authService = {
@@ -20,16 +18,18 @@ const authService = {
     return userData;
   },
 
-  // Register function
-  register: async (name, email, password) => {
+  // Register function (updated to include username)
+  register: async (username, email, password) => {
     const response = await fetch(`${BASE_URL}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ username, email, password }),  // ✅ Sending username
     });
 
     if (!response.ok) {
-      throw new Error("Registration failed");
+      const errorData = await response.json();
+      console.error("Registration Error:", errorData.message);
+      throw new Error(errorData.message || "Registration failed");
     }
 
     return await response.json();
