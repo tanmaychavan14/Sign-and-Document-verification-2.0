@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Login from './Login';
+import History from './History';
 import authService from './services/authService';
 import './Dashboard.css';
 
@@ -13,6 +14,7 @@ function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState(null);
   const [hasReferenceSignature, setHasReferenceSignature] = useState(false);
+  const [activePage, setActivePage] = useState("home");
 
   // Check if user is already logged in on component mount
   useEffect(() => {
@@ -100,7 +102,7 @@ function Dashboard() {
   
     try {
       // Fetch reference signature(s) after login
-      const signaturesData = await authService.getUserSignatures(); // Adjust this function as per your API
+      const signaturesData = await authService.getUserSignatures();
       setHasReferenceSignature(
         signaturesData?.signatures && signaturesData.signatures.length > 0
       );
@@ -118,102 +120,113 @@ function Dashboard() {
     setHasReferenceSignature(false);
   };
 
+  const renderContent = () => {
+    if (activePage === "history") {
+      return <History />;
+    }
+
+    return (
+      <div className="dashboard-content">
+        {/* Left section for signature upload */}
+        <div className="upload-panel">
+          <h2>Signature Verification</h2>
+          
+          <div className="signature-upload-container">
+            <div className="verification-upload">
+              <h3>Verification Signature</h3>
+              <div 
+                className="dropzone"
+                style={{
+                  backgroundImage: verificationPreview ? `url(${verificationPreview})` : 'none',
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat'
+                }}
+              >
+                {!verificationPreview && <p>Upload signature to verify</p>}
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleVerificationSignatureChange} 
+                  className="file-input"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="verification-controls">
+            <button  
+              onClick={verifySignatures} 
+              disabled={!verificationSignature}
+              className="verify-button"
+            >
+              {isLoading ? 'Analyzing...' : 'Verify Signatures'}
+            </button>
+            
+            <button onClick={resetForm} className="reset-button">
+              Reset
+            </button>
+          </div>
+        </div>
+        
+        {/* Right section for results */}
+        <div className="results-panel">
+          <h2>Verification Results</h2>
+          
+          {isLoading ? (
+            <div className="loading-state">
+              <p>Analyzing signatures...</p>
+              <div className="loading-spinner"></div>
+            </div>
+          ) : verificationResult ? (
+            <div className={`result-content ${verificationResult.match ? 'match' : 'no-match'}`}>
+              <div className="result-icon">
+                {verificationResult.match ? '✓' : '✗'}
+              </div>
+              <h3 className="result-heading">
+                {verificationResult.match 
+                  ? 'Signatures Match!' 
+                  : 'Signatures Do Not Match!'}
+              </h3>
+              <p className="confidence">
+                Confidence: {verificationResult.confidence.toFixed(2)}%
+              </p>
+              {verificationResult.match ? (
+                <p className="result-description">
+                  The provided signature appears to match your reference signature.
+                </p>
+              ) : (
+                <p className="result-description">
+                  The provided signature does not appear to match your reference signature.
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="no-result">
+              <p>Upload a signature and click "Verify Signatures" to see results.</p>
+              {!hasReferenceSignature && isLoggedIn && (
+                <p className="warning">
+                  You need to upload a reference signature in your profile before verification.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="dashboard-container">
       <div className={showLogin ? 'blur-background' : ''}>
         <Navbar 
           isLoggedIn={isLoggedIn} 
-          setIsLoggedIn={handleLogout} 
+          setIsLoggedIn={setIsLoggedIn} 
           setShowLogin={setShowLogin}
+          setActivePage={setActivePage}
         />
         
-        <div className="dashboard-content">
-          {/* Left section for signature upload */}
-          <div className="upload-panel">
-            <h2>Signature Verification</h2>
-            
-            <div className="signature-upload-container">
-              <div className="verification-upload">
-                <h3>Verification Signature</h3>
-                <div 
-                  className="dropzone"
-                  style={{
-                    backgroundImage: verificationPreview ? `url(${verificationPreview})` : 'none',
-                    backgroundSize: 'contain',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat'
-                  }}
-                >
-                  {!verificationPreview && <p>Upload signature to verify</p>}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleVerificationSignatureChange} 
-                    className="file-input"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="verification-controls">
-              <button  
-                onClick={verifySignatures} 
-                disabled={!verificationSignature}
-                className="verify-button"
-              >
-                {isLoading ? 'Analyzing...' : 'Verify Signatures'}
-              </button>
-              
-              <button onClick={resetForm} className="reset-button">
-                Reset
-              </button>
-            </div>
-          </div>
-          
-          {/* Right section for results */}
-          <div className="results-panel">
-            <h2>Verification Results</h2>
-            
-            {isLoading ? (
-              <div className="loading-state">
-                <p>Analyzing signatures...</p>
-                <div className="loading-spinner"></div>
-              </div>
-            ) : verificationResult ? (
-              <div className={`result-content ${verificationResult.match ? 'match' : 'no-match'}`}>
-                <div className="result-icon">
-                  {verificationResult.match ? '✓' : '✗'}
-                </div>
-                <h3 className="result-heading">
-                  {verificationResult.match 
-                    ? 'Signatures Match!' 
-                    : 'Signatures Do Not Match!'}
-                </h3>
-                <p className="confidence">
-                  Confidence: {verificationResult.confidence.toFixed(2)}%
-                </p>
-                {verificationResult.match ? (
-                  <p className="result-description">
-                    The provided signature appears to match your reference signature.
-                  </p>
-                ) : (
-                  <p className="result-description">
-                    The provided signature does not appear to match your reference signature.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="no-result">
-                <p>Upload a signature and click "Verify Signatures" to see results.</p>
-                {!hasReferenceSignature && isLoggedIn && (
-                  <p className="warning">
-                    You need to upload a reference signature in your profile before verification.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        {renderContent()}
       </div>
       
       {/* Login Modal */}

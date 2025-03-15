@@ -5,7 +5,7 @@ const path = require('path');
 const { 
   uploadReferenceSignature, 
   verifySignature,
-  getUserReferenceSignatures
+  getUserReferenceSignatures,
 } = require('../controllers/signatureController');
 const { protect } = require('../auth/authMiddleware');
 

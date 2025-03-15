@@ -29,6 +29,7 @@ app.get('/', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/signatures', signatureRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Legacy endpoint for compatibility with original code
 app.post('/verify-signature', async (req, res) => {

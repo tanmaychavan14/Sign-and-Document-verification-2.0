@@ -3,7 +3,7 @@ import "./Navbar.css";
 import authService from "./services/authService";
 import defaultProfileImage from "./assets/demo.jpg"; // Import a default profile image
 
-const Navbar = ({ isLoggedIn, setIsLoggedIn, setShowLogin }) => {
+const Navbar = ({ isLoggedIn, setIsLoggedIn, setShowLogin, setActivePage }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
@@ -47,6 +47,7 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn, setShowLogin }) => {
       setIsLoggedIn(false);
       setIsOpen(false);
       setUser(null);
+      setActivePage("home"); // Go back to home page on logout
     } else {
       console.error("Logout failed:", response.message);
     }
@@ -78,13 +79,24 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn, setShowLogin }) => {
     fileInput.click();
   };
 
+  const handleNavigation = (page) => {
+    setActivePage(page);
+    setIsOpen(false); // Close dropdown if open
+  };
+
   return (
     <nav className="Nav-Bar">
-      <h1 className="trip-logo">Do check ✓</h1>
+      <h1 className="trip-logo" onClick={() => handleNavigation("home")}>Do check ✓</h1>
       <ul className="Nav-Menu">
-        <li><i className="fa-solid fa-house"></i> Home</li>
-        <li><i className="fa-solid fa-address-card"></i> About Us</li>
-        <li><i className="fa-solid fa-address-book"></i> Contact Us</li>
+        <li onClick={() => handleNavigation("home")}>
+          <i className="fa-solid fa-house"></i> Home
+        </li>
+        <li onClick={() => handleNavigation("about")}>
+          <i className="fa-solid fa-address-card"></i> About Us
+        </li>
+        <li onClick={() => handleNavigation("contact")}>
+          <i className="fa-solid fa-address-book"></i> Contact Us
+        </li>
         
         {!isLoggedIn ? (
           <li className="login-container">
@@ -102,15 +114,21 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn, setShowLogin }) => {
             {isOpen && (
               <div className="dropdown-menu">
                 <p className="profile-name">{user?.username || "User"}</p>
-                <button className="dropdown-item">Update Profile</button>
+                <button className="dropdown-item" onClick={() => handleNavigation("updateProfile")}>
+                  Update Profile
+                </button>
                 <hr />
                 <button className="dropdown-item" onClick={handleUploadOriginalSignature}>
                   Upload Original Signature
                 </button>
                 <hr />
-                <button className="dropdown-item">Upload Document</button>
+                <button className="dropdown-item" onClick={() => handleNavigation("uploadDocument")}>
+                  Upload Document
+                </button>
                 <hr />
-                <button className="dropdown-item">History</button>
+                <button className="dropdown-item" onClick={() => handleNavigation("history")}>
+                  History
+                </button>
                 <hr />
                 <button className="logout" onClick={handleLogout}>Logout</button>
               </div>

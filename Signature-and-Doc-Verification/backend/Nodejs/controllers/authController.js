@@ -6,6 +6,7 @@ const {
     updateUser 
   } = require('../database/operations/userOperations');
   const { generateToken } = require('../auth/authUtils');
+
   
   // Register user
   const register = async (req, res) => {
@@ -144,10 +145,62 @@ const {
     }
 };
 
+const getVerificationHistory = async (req, res) => {
+  try {
+    const email = req.user.email;
+    
+    // Get user with verification history
+    const user = await findUserByEmail(email);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // If no history, return empty array
+    if (!user.verificationHistory || user.verificationHistory.length === 0) {
+      return res.status(200).json({
+        success: true,
+        history: [],
+        message: 'No verification history found'
+      });
+    }
+    
+    // Format the history data
+    const formattedHistory = user.verificationHistory.map(entry => ({
+      id: entry._id,
+      date: entry.verifiedAt,
+      signatureImage: entry.verificationSignature 
+          ? `data:image/png;base64,${entry.verificationSignature}`  // Ensure it's Base64
+          : null,
+      similarityScore: entry.similarityScore,
+      isAuthentic: entry.isMatch,
+      status: entry.isMatch ? 'Authentic' : 'Not Authentic'
+    }));
+    
+    
+    res.status(200).json({
+      success: true,
+      history: formattedHistory
+    });
+  } catch (error) {
+    console.error('Error getting verification history:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to retrieve verification history'
+    });
+  }
+};
+
+
 // Ensure logout is exported
 module.exports = {
     register,
     login,
     getUserProfile,
-    logout  // ✅ Make sure this is included
+    logout,
+    getVerificationHistory,
+     // ✅ Make sure this is included
 };

@@ -255,7 +255,33 @@ const authService = {
       console.error("Error getting signatures:", error);
       throw error;
     }
-  }
+  },
+  getVerificationHistory: async () => {
+    try {
+      const token = localStorage.getItem("userToken");
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
+      const response = await fetch(`${BASE_URL}/history`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to get verification history");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting verification history:", error);
+      throw error;
+    }
+  },
+  
 };
 
 export default authService;

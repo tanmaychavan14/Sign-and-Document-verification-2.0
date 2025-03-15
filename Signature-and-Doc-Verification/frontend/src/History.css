@@ -1,0 +1,219 @@
+/* src/components/History.css */
+
+.history-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 1rem;
+    min-height: 80vh; /* Ensure enough space */
+  }
+  
+  
+  .history-title {
+    margin-bottom: 2rem;
+    color: #333;
+    text-align: center;
+    font-size: 2rem;
+  }
+  
+  .no-history {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .no-history .verify-button {
+    margin-top: 1rem;
+    padding: 0.6rem 1.5rem;
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+  }
+  
+  .no-history .verify-button:hover {
+    background-color: #1976d2;
+  }
+  
+  .loading, .error {
+    text-align: center;
+    padding: 2rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+  }
+  
+  .error {
+    color: #d32f2f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .retry-button {
+    margin-top: 1rem;
+    padding: 0.6rem 1.5rem;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+  }
+  
+  .retry-button:hover {
+    background-color: #d32f2f;
+  }
+  
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+  }
+  
+  
+  .history-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .history-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .history-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .history-item-info h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+  }
+  
+  .history-date {
+    margin: 0.3rem 0 0;
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .verification-status {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+  
+  .verification-status.authentic {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .verification-status.not-authentic {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+  
+  .history-content {
+    display: flex;
+    padding: 1rem;
+  }
+  
+  .signature-image {
+    flex: 1;
+    margin-right: 1rem;
+  }
+  
+  .signature-image h4 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: #444;
+  }
+  
+  .signature-image img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: #fafafa;
+    padding: 4px;
+  }
+  
+  .verification-details {
+    flex: 1;
+  }
+  
+  .verification-details h4 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: #444;
+  }
+  
+  .similarity-score {
+    margin-bottom: 1.5rem;
+  }
+  
+  .score-display {
+    position: relative;
+    height: 24px;
+    background-color: #f0f0f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .score-bar {
+    height: 100%;
+    background: linear-gradient(to right, #4fc3f7, #2196f3);
+    border-radius: 12px;
+    transition: width 0.5s ease-out;
+  }
+  
+  .score-value {
+    position: absolute;
+    top: 0;
+    right: 10px;
+    line-height: 24px;
+    font-weight: bold;
+    color: #000;
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+  }
+  
+  .verification-time {
+    margin-top: 1rem;
+  }
+  
+  .verification-time p {
+    margin: 0.3rem 0;
+    color: #555;
+  }
+  
+  @media (max-width: 768px) {
+    .history-content {
+      flex-direction: column;
+    }
+      
+    .signature-image {
+      margin-right: 0;
+      margin-bottom: 1rem;
+    }
+  }

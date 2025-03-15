@@ -147,5 +147,6 @@ const getUserReferenceSignatures = async (req, res) => {
 module.exports = {
   uploadReferenceSignature,
   verifySignature,
-  getUserReferenceSignatures
+  getUserReferenceSignatures,
+
 };
