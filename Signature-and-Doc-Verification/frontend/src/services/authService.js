@@ -18,12 +18,12 @@ const authService = {
     return userData;
   },
 
-  // Register function (updated to include username)
+  // Register function
   register: async (username, email, password) => {
     const response = await fetch(`${BASE_URL}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),  // ✅ Sending username
+      body: JSON.stringify({ username, email, password }),
     });
 
     if (!response.ok) {
@@ -37,36 +37,58 @@ const authService = {
 
   // Logout function
   logout: async () => {
-    const response = await fetch(`${BASE_URL}/logout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (!response.ok) {
-      throw new Error("Logout failed");
+    try {
+      const token = localStorage.getItem("userToken");
+  
+      // If no token, just return success instead of throwing an error
+      if (!token) {
+        console.warn("No token found. Already logged out.");
+        return { success: true };
+      }
+  
+      const response = await fetch(`${BASE_URL}/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+  
+      if (!response.ok) {
+        const responseData = await response.json();
+        throw new Error(responseData.message || "Logout failed");
+      }
+  
+      console.log("Logout successful");
+  
+      // Clear local storage
+      localStorage.removeItem("userToken");
+      localStorage.removeItem("userData");
+  
+      return { success: true };
+    } catch (error) {
+      console.error("Logout error:", error.message);
+      return { success: false, message: error.message };
     }
-
-    localStorage.removeItem("userToken");
-    localStorage.removeItem("userData");
-
-    return { success: true };
   },
+  
 
-  // Check if user is logged in
+  // ✅ Add isAuthenticated function
   isAuthenticated: () => {
-    return !!localStorage.getItem("userToken");
+    const token = localStorage.getItem("userToken");
+    return !!token; // Returns true if token exists, otherwise false
   },
 
-  // Store user data after login/signup
-  saveUserData: (userData) => {
-    localStorage.setItem("userToken", userData.token);
-    localStorage.setItem("userData", JSON.stringify(userData));
-  },
-
-  // Get current user data
+  // ✅ Add getCurrentUser function
   getCurrentUser: () => {
-    const userDataStr = localStorage.getItem("userData");
-    return userDataStr ? JSON.parse(userDataStr) : null;
+    const user = localStorage.getItem("userData");
+    return user ? JSON.parse(user) : null;
+  },
+
+  // ✅ Add saveUserData function
+  saveUserData: (userData) => {
+    localStorage.setItem("userToken", userData.token); // Save token
+    localStorage.setItem("userData", JSON.stringify(userData)); // Save user data
   },
 };
 

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Navbar.css";
 import profilePic from "./assets/demo.jpg";
+import authService from "./services/authService";
 
 const Navbar = ({ isLoggedIn, setIsLoggedIn, setShowLogin }) => {
   const [isOpen, setIsOpen] = useState(false); // State to toggle dropdown
@@ -13,6 +14,22 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn, setShowLogin }) => {
   const handleLoginClick = () => {
     setShowLogin(true);
   };
+  const handleLogout = async () => {
+    try {
+      const response = await authService.logout();
+      
+      if (response.success) {
+        setIsLoggedIn(false);
+        setShowLogin(false);
+        setIsOpen(false);
+      } else {
+        console.error("Logout failed:", response.message);
+      }
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+  
   
   return (
     <nav className="Nav-Bar">
@@ -49,7 +66,7 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn, setShowLogin }) => {
                 <hr />
                 <button className="dropdown-item">History</button>
                 <hr />
-                <button className="logout" onClick={() => setIsLoggedIn(false)}>Logout</button>
+                <button className="logout" onClick={handleLogout}>Logout</button>
               </div>
             )}
           </li>

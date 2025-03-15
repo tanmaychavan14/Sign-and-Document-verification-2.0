@@ -114,9 +114,25 @@ const {
       });
     }
   };
-  
-  module.exports = {
+
+  const logout = async (req, res) => {
+    try {
+        res.status(200).json({
+            success: true,
+            message: "User logged out successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Ensure logout is exported
+module.exports = {
     register,
     login,
-    getUserProfile
-  };
+    getUserProfile,
+    logout  // ✅ Make sure this is included
+};
