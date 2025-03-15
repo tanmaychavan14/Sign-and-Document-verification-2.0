@@ -11,6 +11,7 @@ const {
   const register = async (req, res) => {
     try {
       const { username, email, password } = req.body;
+      const { profilePicture, originalSignature } = req.files; // Assuming you upload them as files
       
       // Check if user exists
       const existingUser = await findUserByEmail(email);
@@ -20,20 +21,22 @@ const {
           message: 'User already exists'
         });
       }
-      
+  
       // Create new user
       const user = await createUser({
         username,
         email,
-        password
+        password,
+        profilePicture: profilePicture ? profilePicture.data : null, // Store profile picture as binary data
+        originalSignature: originalSignature ? originalSignature.data : null // Store original signature as binary data
       });
-      
+  
       // Generate token
       const token = generateToken(user._id);
-      
+  
       // Update last login
       await updateUser(user._id, { lastLogin: new Date() });
-      
+  
       res.status(201).json({
         success: true,
         user: {
@@ -45,14 +48,13 @@ const {
         token
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       res.status(500).json({
         success: false,
         message: error.message
       });
     }
   };
-  
   // Login user
   const login = async (req, res) => {
     try {
@@ -103,9 +105,23 @@ const {
   // Get user profile
   const getUserProfile = async (req, res) => {
     try {
+      const user = await findUserByEmail(req.user.email);
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+  
+      // Return user profile with image data
       res.status(200).json({
         success: true,
-        user: req.user
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          profilePicture: user.profilePicture.toString('base64'), // Convert binary data to base64
+          originalSignature: user.originalSignature.toString('base64') // Convert binary data to base64
+        }
       });
     } catch (error) {
       res.status(500).json({
@@ -114,7 +130,6 @@ const {
       });
     }
   };
-
   const logout = async (req, res) => {
     try {
         res.status(200).json({

@@ -31,8 +31,10 @@ const UserSchema = new mongoose.Schema({
     default: 'user'
   },
   profilePicture: {
-    type: String,
-    default: 'default-profile.jpg'
+    type: Buffer // Store profile picture as binary data
+  },
+  originalSignature: {
+    type: Buffer // Store original signature as binary data
   },
   signatureReferences: [{
     type: mongoose.Schema.Types.ObjectId,

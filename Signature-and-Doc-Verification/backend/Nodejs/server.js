@@ -19,10 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 // Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+
 
 // Routes
 app.get('/', (req, res) => {

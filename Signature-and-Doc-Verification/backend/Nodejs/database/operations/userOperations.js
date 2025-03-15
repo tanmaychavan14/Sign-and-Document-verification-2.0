@@ -63,22 +63,70 @@ const updatePassword = async (userId, newPassword) => {
   }
 };
 
-// Add verification to history
-const addVerificationToHistory = async (userId, verificationData) => {
-  try {
-    return await User.findByIdAndUpdate(
-      userId,
-      { $push: { verificationHistory: verificationData } },
-      { new: true }
-    );
-  } catch (error) {
-    throw new Error(`Error adding verification: ${error.message}`);
-  }
-};
 
 // Compare password
 const comparePassword = async (password, hashedPassword) => {
   return await bcrypt.compare(password, hashedPassword);
+};
+const addSignatureReference = async (userId, signatureId) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    // Add signature reference to user's signatureReferences array
+    user.signatureReferences.push(signatureId);
+    await user.save();
+    
+    return user;
+  } catch (error) {
+    console.error('Error adding signature reference:', error);
+    throw error;
+  }
+};
+
+// Add verification to user's history
+const addVerificationToHistory = async (userId, verificationData) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    // Add verification to history
+    user.verificationHistory.push({
+      originalSignature: verificationData.originalSignature,
+      verificationSignature: verificationData.verificationSignature,
+      similarityScore: verificationData.similarityScore,
+      isMatch: verificationData.isMatch,
+      verifiedAt: new Date()
+    });
+    
+    await user.save();
+    return user;
+  } catch (error) {
+    console.error('Error adding verification to history:', error);
+    throw error;
+  }
+};
+
+// Get user by ID with populated signature references
+const getUserById = async (userId) => {
+  try {
+    const user = await User.findById(userId)
+      .populate('signatureReferences')
+      .select('-password');
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    return user;
+  } catch (error) {
+    console.error('Error getting user by ID:', error);
+    throw error;
+  }
 };
 
 module.exports = {
@@ -88,5 +136,9 @@ module.exports = {
   updateUser,
   updatePassword,
   addVerificationToHistory,
-  comparePassword
+  comparePassword,
+  addSignatureReference,
+  addVerificationToHistory,
+  getUserById,
+  
 };

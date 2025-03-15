@@ -12,14 +12,27 @@ function Dashboard() {
   const [verificationResult, setVerificationResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [hasReferenceSignature, setHasReferenceSignature] = useState(false);
 
   // Check if user is already logged in on component mount
   useEffect(() => {
-    const checkAuthStatus = () => {
+    const checkAuthStatus = async () => {
       const isAuth = authService.isAuthenticated();
       if (isAuth) {
         setIsLoggedIn(true);
-        setUserData(authService.getCurrentUser());
+        const user = await authService.getCurrentUser();
+        setUserData(user);
+        
+        // Instead of checking user.signatureReferences, explicitly fetch signatures
+        try {
+          const signaturesData = await authService.getUserSignatures();
+          setHasReferenceSignature(
+            signaturesData?.signatures && signaturesData.signatures.length > 0
+          );
+        } catch (error) {
+          console.error("Error fetching signatures:", error);
+          setHasReferenceSignature(false);
+        }
       }
     };
     
@@ -40,7 +53,7 @@ function Dashboard() {
     }
   };
 
-  const verifySignatures = () => {
+  const verifySignatures = async () => {
     // Check if user is logged in
     if (!isLoggedIn) {
       // If not logged in, show login modal
@@ -48,23 +61,30 @@ function Dashboard() {
       return;
     }
     
+    if (!hasReferenceSignature) {
+      alert("Please upload a reference signature first from your profile menu!");
+      return;
+    }
+    
     // Continue with verification if logged in
     setIsLoading(true);
     
-    // Simulating API call with setTimeout
-    setTimeout(() => {
-      // For demo purposes, we'll generate a random result
-      // In a real app, this would come from your backend
-      const randomMatch = Math.random() > 0.5;
-      const confidence = (Math.random() * 50 + 50).toFixed(2); // 50-100%
-      
+    try {
+      const result = await authService.verifySignature(verificationSignature);
+      console.log(result)
+      // Updated to match the response structure from the backend
       setVerificationResult({
-        match: randomMatch,
-        confidence: confidence
+        match: result.result.match === "Genuine",
+        confidence: result.result.similarity_score ? 
+          result.result.similarity_score * 100 : // Convert to percentage if available
+          result.result.match === "Genuine" ? 85 : 15 // Default confidence if not provided
       });
-      
+    } catch (error) {
+      console.error("Verification error:", error);
+      alert(`Verification failed: ${error.message || "Unknown error"}`);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const resetForm = () => {
@@ -73,19 +93,29 @@ function Dashboard() {
     setVerificationResult(null);
   };
 
-  const handleLoginSuccess = (userData) => {
+  const handleLoginSuccess = async (userData) => {
     setIsLoggedIn(true);
     setShowLogin(false);
     setUserData(userData);
-    
-    // Save user data in local storage via auth service
-    authService.saveUserData(userData);
+  
+    try {
+      // Fetch reference signature(s) after login
+      const signaturesData = await authService.getUserSignatures(); // Adjust this function as per your API
+      setHasReferenceSignature(
+        signaturesData?.signatures && signaturesData.signatures.length > 0
+      );
+    } catch (error) {
+      console.error("Error fetching signatures:", error);
+      setHasReferenceSignature(false);
+    }
   };
+  
 
   const handleLogout = async () => {
     await authService.logout();
     setIsLoggedIn(false);
     setUserData(null);
+    setHasReferenceSignature(false);
   };
 
   return (
@@ -98,7 +128,7 @@ function Dashboard() {
         />
         
         <div className="dashboard-content">
-          {/* Left section for signature upload - Keeping original UI */}
+          {/* Left section for signature upload */}
           <div className="upload-panel">
             <h2>Signature Verification</h2>
             
@@ -140,7 +170,7 @@ function Dashboard() {
             </div>
           </div>
           
-          {/* Right section for results - Keeping original UI */}
+          {/* Right section for results */}
           <div className="results-panel">
             <h2>Verification Results</h2>
             
@@ -160,21 +190,26 @@ function Dashboard() {
                     : 'Signatures Do Not Match!'}
                 </h3>
                 <p className="confidence">
-                  Confidence: {verificationResult.confidence}%
+                  Confidence: {verificationResult.confidence.toFixed(2)}%
                 </p>
                 {verificationResult.match ? (
                   <p className="result-description">
-                    The provided signatures appear to be from the same person.
+                    The provided signature appears to match your reference signature.
                   </p>
                 ) : (
                   <p className="result-description">
-                    The provided signatures do not appear to match.
+                    The provided signature does not appear to match your reference signature.
                   </p>
                 )}
               </div>
             ) : (
               <div className="no-result">
                 <p>Upload a signature and click "Verify Signatures" to see results.</p>
+                {!hasReferenceSignature && isLoggedIn && (
+                  <p className="warning">
+                    You need to upload a reference signature in your profile before verification.
+                  </p>
+                )}
               </div>
             )}
           </div>
