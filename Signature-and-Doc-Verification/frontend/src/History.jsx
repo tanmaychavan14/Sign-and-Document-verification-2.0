@@ -12,6 +12,7 @@ const History = ({ setActivePage }) => {
       try {
         setLoading(true);
         const response = await authService.getVerificationHistory();
+        console.log("Verification History Data:", response);
         setHistory(response.history);
         setLoading(false);
       } catch (err) {
@@ -75,11 +76,14 @@ const History = ({ setActivePage }) => {
                 <div className="signature-image">
                   <h4>Verified Signature</h4>
                   {item.signatureImage ? (
-  <img 
-    src={`http://localhost:4000//uploads/${item.signatureImage}`} // Try "image/png" instead of "image/jpeg"
-    alt="Verified signature"
-    onError={(e) => e.target.style.display = 'none'} // Hide broken images
-  />
+     <img 
+     src={`http://localhost:4000/uploads/${item.signatureImage.replace(/^data:image\/\w+;base64,/, '')}`} 
+     alt="Verified signature"
+     onError={(e) => e.target.style.display = 'none'} // Hide broken images
+   />
+   
+    
+
   
 ) : (
   <p>No signature image available</p>

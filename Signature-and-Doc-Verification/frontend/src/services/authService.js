@@ -274,6 +274,7 @@ const authService = {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to get verification history");
       }
+      
 
       return await response.json();
     } catch (error) {
