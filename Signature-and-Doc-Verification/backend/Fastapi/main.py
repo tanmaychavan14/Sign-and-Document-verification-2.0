@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Configure Tesseract
-pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Configure Gemini API (use environment variable in production)
 genai.configure(api_key="AIzaSyAdxiIs1UrzyMogREnWS0mH5vSe8HashPs")

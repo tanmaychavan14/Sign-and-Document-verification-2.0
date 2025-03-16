@@ -144,12 +144,10 @@ function Dashboard() {
       console.log(result);
       
       setDocumentResult({
-        match: result.result.match === "Genuine",
-        confidence: result.result.similarity_score ? 
-          result.result.similarity_score * 100 : 
-          result.result.match === "Genuine" ? 85 : 15,
-        extractedText: result.result.extracted_text || "No text extracted",
-        documentType: result.result.document_type || "Unknown"
+        match: result.result.isMatch,
+        confidence: result.result.matchScore * 100,
+        extractedText: result.result.extractedText || "No text extracted",
+        documentType: result.result.documentType || "Unknown"
       });
     } catch (error) {
       console.error("Document verification error:", error);
