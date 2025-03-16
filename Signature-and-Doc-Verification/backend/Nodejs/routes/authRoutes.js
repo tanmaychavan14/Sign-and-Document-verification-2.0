@@ -1,7 +1,7 @@
 // backend/routes/authRoutes.js
 const express = require('express');
 const multer = require('multer');
-const { register, login, getUserProfile, logout ,getVerificationHistory} = require('../controllers/authController');
+const { register, login, getUserProfile, logout ,getVerificationHistory,getUserDocumentHistory} = require('../controllers/authController');
 const { protect } = require('../auth/authMiddleware');
 
 const router = express.Router();
@@ -21,5 +21,5 @@ router.post('/login', login);
 router.get('/profile', protect, getUserProfile);
 router.post('/logout', protect, logout);
 router.get('/history', protect, getVerificationHistory);
-
+router.get('/historyd', protect, getUserDocumentHistory);
 module.exports = router;

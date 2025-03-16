@@ -194,6 +194,19 @@ const getVerificationHistory = async (req, res) => {
   }
 };
 
+const getUserDocumentHistory = async (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      message: "User document history feature is not implemented yet"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
 
 // Ensure logout is exported
 module.exports = {
@@ -202,5 +215,6 @@ module.exports = {
     getUserProfile,
     logout,
     getVerificationHistory,
+    getUserDocumentHistory
      // ✅ Make sure this is included
 };
