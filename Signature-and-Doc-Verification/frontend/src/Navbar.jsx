@@ -79,6 +79,32 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn, setShowLogin, setActivePage }) => {
     fileInput.click();
   };
 
+  const handleUploadOriginalDocument = () => {
+    // Create a hidden file input
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*,.pdf'; // Accept images and PDFs
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+    
+    // Handle file selection
+    fileInput.onchange = async (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        try {
+          await authService.uploadReferenceDocument(file);
+          alert("Reference document uploaded successfully!");
+        } catch (error) {
+          alert(`Failed to upload document: ${error.message}`);
+        }
+      }
+      document.body.removeChild(fileInput);
+    };
+    
+    // Trigger file selection dialog
+    fileInput.click();
+  };
+
   const handleNavigation = (page) => {
     setActivePage(page);
     setIsOpen(false); // Close dropdown if open
@@ -122,12 +148,16 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn, setShowLogin, setActivePage }) => {
                   Upload Original Signature
                 </button>
                 <hr />
-                <button className="dropdown-item" onClick={() => handleNavigation("uploadDocument")}>
+                <button className="dropdown-item" onClick={handleUploadOriginalDocument}>
                   Upload Document
                 </button>
                 <hr />
                 <button className="dropdown-item" onClick={() => handleNavigation("history")}>
-                  History
+                  Signature History
+                </button>
+                <hr />
+                <button className="dropdown-item" onClick={() => handleNavigation("documentHistory")}>
+                  Document History
                 </button>
                 <hr />
                 <button className="logout" onClick={handleLogout}>Logout</button>

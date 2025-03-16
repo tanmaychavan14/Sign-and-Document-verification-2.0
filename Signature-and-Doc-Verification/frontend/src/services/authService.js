@@ -1,5 +1,6 @@
 const BASE_URL = "http://localhost:4000/api/auth";
 const SIGNATURE_URL = "http://localhost:4000/api/signatures";
+const DOCUMENT_URL = "http://localhost:4000/api/documents";
 
 const authService = {
   // Login function
@@ -282,7 +283,123 @@ const authService = {
       throw error;
     }
   },
+  uploadReferenceDocument: async (documentFile, documentType = "ID") => {
+    try {
+      const token = localStorage.getItem("userToken");
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+      
+      const formData = new FormData();
+      formData.append("document", documentFile);
+      formData.append("documentType", documentType);
+      
+      const response = await fetch(`${DOCUMENT_URL}/reference`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to upload reference document");
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error uploading reference document:", error);
+      throw error;
+    }
+  },
   
+  // Verify document
+  verifyDocument: async (verificationDocument) => {
+    try {
+      const token = localStorage.getItem("userToken");
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+      
+      const formData = new FormData();
+      formData.append("verification_document", verificationDocument);
+      
+      const response = await fetch(`${DOCUMENT_URL}/verify`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Document verification failed");
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error verifying document:", error);
+      throw error;
+    }
+  },
+  
+  // Get user's reference documents
+  getUserDocuments: async () => {
+    try {
+      const token = localStorage.getItem("userToken");
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+      
+      const response = await fetch(`${DOCUMENT_URL}/references`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to get documents");
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting documents:", error);
+      throw error;
+    }
+  },
+  
+  // Get document verification history
+  getDocumentVerificationHistory: async () => {
+    try {
+      const token = localStorage.getItem("userToken");
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
+      const response = await fetch(`${DOCUMENT_URL}/history`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to get document verification history");
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting document verification history:", error);
+      throw error;
+    }
+  }
 };
+  
+
 
 export default authService;

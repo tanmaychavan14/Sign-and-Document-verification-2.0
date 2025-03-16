@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Login from './Login';
 import History from './History';
+import DocumentHistory from './DocumentHistory';
 import authService from './services/authService';
 import './Dashboard.css';
 
@@ -15,6 +16,14 @@ function Dashboard() {
   const [userData, setUserData] = useState(null);
   const [hasReferenceSignature, setHasReferenceSignature] = useState(false);
   const [activePage, setActivePage] = useState("home");
+  
+  // Document verification states
+  const [verificationDocument, setVerificationDocument] = useState(null);
+  const [documentPreview, setDocumentPreview] = useState(null);
+  const [documentResult, setDocumentResult] = useState(null);
+  const [documentLoading, setDocumentLoading] = useState(false);
+  const [hasReferenceDocument, setHasReferenceDocument] = useState(false);
+  const [activeTab, setActiveTab] = useState("signature"); // "signature" or "document"
 
   // Check if user is already logged in on component mount
   useEffect(() => {
@@ -25,7 +34,7 @@ function Dashboard() {
         const user = await authService.getCurrentUser();
         setUserData(user);
         
-        // Instead of checking user.signatureReferences, explicitly fetch signatures
+        // Check signatures
         try {
           const signaturesData = await authService.getUserSignatures();
           setHasReferenceSignature(
@@ -34,6 +43,17 @@ function Dashboard() {
         } catch (error) {
           console.error("Error fetching signatures:", error);
           setHasReferenceSignature(false);
+        }
+        
+        // Check documents
+        try {
+          const documentsData = await authService.getUserDocuments();
+          setHasReferenceDocument(
+            documentsData?.documents && documentsData.documents.length > 0
+          );
+        } catch (error) {
+          console.error("Error fetching documents:", error);
+          setHasReferenceDocument(false);
         }
       }
     };
@@ -50,6 +70,20 @@ function Dashboard() {
       const reader = new FileReader();
       reader.onload = (event) => {
         setVerificationPreview(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleVerificationDocumentChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setVerificationDocument(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setDocumentPreview(event.target.result);
       };
       reader.readAsDataURL(file);
     }
@@ -88,11 +122,53 @@ function Dashboard() {
       setIsLoading(false);
     }
   };
+  
+  const verifyDocuments = async () => {
+    // Check if user is logged in
+    if (!isLoggedIn) {
+      // If not logged in, show login modal
+      setShowLogin(true);
+      return;
+    }
+    
+    if (!hasReferenceDocument) {
+      alert("Please upload a reference document first from your profile menu!");
+      return;
+    }
+    
+    // Continue with verification if logged in
+    setDocumentLoading(true);
+    
+    try {
+      const result = await authService.verifyDocument(verificationDocument);
+      console.log(result);
+      
+      setDocumentResult({
+        match: result.result.match === "Genuine",
+        confidence: result.result.similarity_score ? 
+          result.result.similarity_score * 100 : 
+          result.result.match === "Genuine" ? 85 : 15,
+        extractedText: result.result.extracted_text || "No text extracted",
+        documentType: result.result.document_type || "Unknown"
+      });
+    } catch (error) {
+      console.error("Document verification error:", error);
+      alert(`Document verification failed: ${error.message || "Unknown error"}`);
+    } finally {
+      setDocumentLoading(false);
+    }
+  };
 
-  const resetForm = () => {
+  const resetSignatureForm = () => {
     setVerificationSignature(null);
     setVerificationPreview(null);
     setVerificationResult(null);
+  };
+  
+  const resetDocumentForm = () => {
+    setVerificationDocument(null);
+    setDocumentPreview(null);
+    setDocumentResult(null);
   };
 
   const handleLoginSuccess = async (userData) => {
@@ -106,25 +182,47 @@ function Dashboard() {
       setHasReferenceSignature(
         signaturesData?.signatures && signaturesData.signatures.length > 0
       );
+      
+      // Fetch reference document(s) after login
+      const documentsData = await authService.getUserDocuments();
+      setHasReferenceDocument(
+        documentsData?.documents && documentsData.documents.length > 0
+      );
     } catch (error) {
-      console.error("Error fetching signatures:", error);
+      console.error("Error fetching user data:", error);
       setHasReferenceSignature(false);
+      setHasReferenceDocument(false);
     }
   };
-  
 
   const handleLogout = async () => {
     await authService.logout();
     setIsLoggedIn(false);
     setUserData(null);
     setHasReferenceSignature(false);
+    setHasReferenceDocument(false);
   };
 
-  const renderContent = () => {
-    if (activePage === "history") {
-      return <History />;
-    }
+  const renderVerificationTabs = () => {
+    return (
+      <div className="verification-tabs">
+        <button 
+          className={`tab-button ${activeTab === 'signature' ? 'active' : ''}`}
+          onClick={() => setActiveTab('signature')}
+        >
+          Signature Verification
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'document' ? 'active' : ''}`}
+          onClick={() => setActiveTab('document')}
+        >
+          Document Verification
+        </button>
+      </div>
+    );
+  };
 
+  const renderSignatureVerification = () => {
     return (
       <div className="dashboard-content">
         {/* Left section for signature upload */}
@@ -163,7 +261,7 @@ function Dashboard() {
               {isLoading ? 'Analyzing...' : 'Verify Signatures'}
             </button>
             
-            <button onClick={resetForm} className="reset-button">
+            <button onClick={resetSignatureForm} className="reset-button">
               Reset
             </button>
           </div>
@@ -213,6 +311,116 @@ function Dashboard() {
           )}
         </div>
       </div>
+    );
+  };
+  
+  const renderDocumentVerification = () => {
+    return (
+      <div className="dashboard-content">
+        {/* Left section for document upload */}
+        <div className="upload-panel">
+          <h2>Document Verification</h2>
+          
+          <div className="document-upload-container">
+            <div className="verification-upload">
+              <h3>Verification Document</h3>
+              <div 
+                className="dropzone"
+                style={{
+                  backgroundImage: documentPreview ? `url(${documentPreview})` : 'none',
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat'
+                }}
+              >
+                {!documentPreview && <p>Upload document to verify</p>}
+                <input 
+                  type="file" 
+                  accept="image/*,.pdf" 
+                  onChange={handleVerificationDocumentChange} 
+                  className="file-input"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="verification-controls">
+            <button  
+              onClick={verifyDocuments} 
+              disabled={!verificationDocument}
+              className="verify-button"
+            >
+              {documentLoading ? 'Analyzing...' : 'Verify Document'}
+            </button>
+            
+            <button onClick={resetDocumentForm} className="reset-button">
+              Reset
+            </button>
+          </div>
+        </div>
+        
+        {/* Right section for results */}
+        <div className="results-panel">
+          <h2>Verification Results</h2>
+          
+          {documentLoading ? (
+            <div className="loading-state">
+              <p>Analyzing document...</p>
+              <div className="loading-spinner"></div>
+            </div>
+          ) : documentResult ? (
+            <div className={`result-content ${documentResult.match ? 'match' : 'no-match'}`}>
+              <div className="result-icon">
+                {documentResult.match ? '✓' : '✗'}
+              </div>
+              <h3 className="result-heading">
+                {documentResult.match 
+                  ? 'Document Verified!' 
+                  : 'Document Verification Failed!'}
+              </h3>
+              <p className="confidence">
+                Confidence: {documentResult.confidence.toFixed(2)}%
+              </p>
+              <div className="document-details">
+                <h4>Document Details:</h4>
+                <p><strong>Type:</strong> {documentResult.documentType}</p>
+                <div className="extracted-text">
+                  <h4>Extracted Text:</h4>
+                  <div className="text-content">
+                    {documentResult.extractedText || "No text could be extracted"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="no-result">
+              <p>Upload a document and click "Verify Document" to see results.</p>
+              {!hasReferenceDocument && isLoggedIn && (
+                <p className="warning">
+                  You need to upload a reference document in your profile before verification.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderContent = () => {
+    if (activePage === "history") {
+      return <History />;
+    }
+    
+    if (activePage === "documentHistory") {
+      return <DocumentHistory />;
+    }
+
+    return (
+      <>
+        {renderVerificationTabs()}
+        {activeTab === 'signature' ? renderSignatureVerification() : renderDocumentVerification()}
+      </>
     );
   };
 
