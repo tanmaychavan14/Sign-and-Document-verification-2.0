@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 # Configure Gemini API (use environment variable in production)
-genai.configure(api_key=os.getenv("GEMINI_API_KEY", "YOUR_API_KEY_HERE"))
+genai.configure(api_key="AIzaSyAdxiIs1UrzyMogREnWS0mH5vSe8HashPs")
 
 # Create a temporary directory for uploaded files
 temp_dir = "temp_files"
