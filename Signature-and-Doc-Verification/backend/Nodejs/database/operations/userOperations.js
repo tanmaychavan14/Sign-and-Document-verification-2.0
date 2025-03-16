@@ -1,4 +1,3 @@
-// backend/database/operations/userOperations.js
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
@@ -63,11 +62,12 @@ const updatePassword = async (userId, newPassword) => {
   }
 };
 
-
 // Compare password
 const comparePassword = async (password, hashedPassword) => {
   return await bcrypt.compare(password, hashedPassword);
 };
+
+// Add signature reference
 const addSignatureReference = async (userId, signatureId) => {
   try {
     const user = await User.findById(userId);
@@ -111,11 +111,61 @@ const addVerificationToHistory = async (userId, verificationData) => {
   }
 };
 
-// Get user by ID with populated signature references
+// New document-related functions
+
+// Add document reference
+const addDocumentReference = async (userId, documentId) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    // Add document reference to user's documentReferences array
+    user.documentReferences.push(documentId);
+    await user.save();
+    
+    return user;
+  } catch (error) {
+    console.error('Error adding document reference:', error);
+    throw error;
+  }
+};
+
+// Add document verification to history
+const addDocumentVerificationToHistory = async (userId, verificationData) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    // Add document verification to history
+    user.documentVerificationHistory.push({
+      originalDocument: verificationData.originalDocument,
+      verificationDocument: verificationData.verificationDocument,
+      extractedText: verificationData.extractedText,
+      documentType: verificationData.documentType,
+      structuredData: verificationData.structuredData,
+      matchScore: verificationData.matchScore,
+      isMatch: verificationData.isMatch,
+      verifiedAt: new Date()
+    });
+    
+    await user.save();
+    return user;
+  } catch (error) {
+    console.error('Error adding document verification to history:', error);
+    throw error;
+  }
+};
+
+// Get user by ID with populated references
 const getUserById = async (userId) => {
   try {
     const user = await User.findById(userId)
       .populate('signatureReferences')
+      .populate('documentReferences')
       .select('-password');
     
     if (!user) {
@@ -129,16 +179,34 @@ const getUserById = async (userId) => {
   }
 };
 
+// Get user document verification history
+const getUserDocumentHistory = async (userId) => {
+  try {
+    const user = await User.findById(userId).select('documentVerificationHistory');
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    return user.documentVerificationHistory;
+  } catch (error) {
+    console.error('Error getting user document history:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   createUser,
   findUserById,
   findUserByEmail,
   updateUser,
   updatePassword,
-  addVerificationToHistory,
   comparePassword,
   addSignatureReference,
   addVerificationToHistory,
   getUserById,
-  
+  // New exports
+  addDocumentReference,
+  addDocumentVerificationToHistory,
+  getUserDocumentHistory
 };

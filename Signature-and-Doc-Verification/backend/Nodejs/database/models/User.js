@@ -1,4 +1,3 @@
-// backend/database/models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -44,6 +43,24 @@ const UserSchema = new mongoose.Schema({
     originalSignature: String,
     verificationSignature: String,
     similarityScore: Number,
+    isMatch: Boolean,
+    verifiedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  // New document-related fields
+  documentReferences: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Document'
+  }],
+  documentVerificationHistory: [{
+    originalDocument: String,
+    verificationDocument: String,
+    extractedText: String,
+    documentType: String,
+    structuredData: Object,
+    matchScore: Number,
     isMatch: Boolean,
     verifiedAt: {
       type: Date,
